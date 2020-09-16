@@ -9,6 +9,7 @@ class Endpoints
     const ACCOUNT_PAGE = 'https://www.instagram.com/{username}';
     const MEDIA_LINK = 'https://www.instagram.com/p/{code}';
     const ACCOUNT_MEDIAS = 'https://www.instagram.com/graphql/query/?query_hash=e769aa130647d2354c40ea6a439bfc08&variables={variables}';
+    const STORIES_MEDIAS = 'https://www.instagram.com/graphql/query/?query_hash=90709b530ea0969f002c86a89b4f2b8d&variables={variables}';
     const ACCOUNT_JSON_INFO = 'https://www.instagram.com/{username}/?__a=1';
     const ACCOUNT_ACTIVITY = 'https://www.instagram.com/accounts/activity/?__a=1';
     const MEDIA_JSON_INFO = 'https://www.instagram.com/p/{code}/?__a=1';
@@ -189,6 +190,12 @@ class Endpoints
     {
         $url = self::getGraphQlUrl(InstagramQueryId::STORIES, ['variables' => json_encode($variables)]);
         return $url;
+    }
+
+    public static function getStories($variables)
+    {
+        $variables = json_encode($variables);
+        return str_replace('{variables}', urlencode($variables), static::STORIES_MEDIAS);
     }
 
     public static function getLikeUrl($mediaId)

@@ -126,7 +126,6 @@ class Instagram
         } else {
             return 'Unknown body format';
         }
-
     }
 
     /**
@@ -241,7 +240,6 @@ class Instagram
                 'referer' => Endpoints::BASE_URL . '/',
                 'x-csrftoken' => $csrf,
             ];
-
         }
 
         if ($this->getUserAgent()) {
@@ -305,8 +303,10 @@ class Instagram
      */
     public function getFeed()
     {
-        $response = Request::get(Endpoints::USER_FEED,
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::USER_FEED,
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with given username does not exist.');
@@ -356,7 +356,7 @@ class Instagram
      */
     private function parseCookies($headers)
     {
-        if($this->customCookies){
+        if ($this->customCookies) {
             return $this->getCustomCookies();
         }
 
@@ -404,8 +404,10 @@ class Instagram
      */
     public function getActivity()
     {
-        $response = Request::get(Endpoints::getActivityUrl(),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getActivityUrl(),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with given username does not exist.');
@@ -431,7 +433,6 @@ class Instagram
      */
     public function getMedias($username, $count = 20, $maxId = '')
     {
-
         $account = $this->getAccount($username);
         return $this->getMediasByUserId($account->getId(), $count, $maxId);
     }
@@ -665,7 +666,6 @@ class Instagram
     {
         $url = Endpoints::getMediaPageLink($mediaCode);
         return $this->getMediaByUrl($url);
-
     }
 
     /**
@@ -869,7 +869,6 @@ class Instagram
             }
             if (!isset($maxId)) {
                 $maxId = '';
-
             }
             $commentsUrl = Endpoints::getLastLikesByCode($code, $numberOfLikesToRetreive, $maxId);
             $response = Request::get($commentsUrl, $this->generateHeaders($this->userSession));
@@ -950,7 +949,7 @@ class Instagram
             throw new InstagramException('Response does not JSON');
         }
 
-        if ($responseArray['data']['user'] === null){
+        if ($responseArray['data']['user'] === null) {
             throw new InstagramNotFoundException('Failed to fetch account with given id');
         }
 
@@ -978,8 +977,10 @@ class Instagram
         $mediaIds = [];
         $hasNextPage = true;
         while ($index < $count && $hasNextPage) {
-            $response = Request::get(Endpoints::getMediasJsonByTagLink($tag, $maxId),
-                $this->generateHeaders($this->userSession));
+            $response = Request::get(
+                Endpoints::getMediasJsonByTagLink($tag, $maxId),
+                $this->generateHeaders($this->userSession)
+            );
             if ($response->code === static::HTTP_NOT_FOUND) {
                 throw new InstagramNotFoundException('This tag does not exists or it has been hidden by Instagram');
             }
@@ -1042,8 +1043,10 @@ class Instagram
             'hasNextPage' => $hasNextPage,
         ];
 
-        $response = Request::get(Endpoints::getMediasJsonByTagLink($tag, $maxId),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getMediasJsonByTagLink($tag, $maxId),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('This tag does not exists or it has been hidden by Instagram');
@@ -1108,8 +1111,10 @@ class Instagram
             'hasNextPage' => $hasNextPage,
         ];
 
-        $response = Request::get(Endpoints::getMediasJsonByLocationIdLink($facebookLocationId, $maxId),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getMediasJsonByLocationIdLink($facebookLocationId, $maxId),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Location with this id doesn\'t exist');
@@ -1164,8 +1169,10 @@ class Instagram
      */
     public function getCurrentTopMediasByTagName($tagName)
     {
-        $response = Request::get(Endpoints::getMediasJsonByTagLink($tagName, ''),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getMediasJsonByTagLink($tagName, ''),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with given username does not exist.');
@@ -1193,8 +1200,10 @@ class Instagram
      */
     public function getCurrentTopMediasByLocationId($facebookLocationId)
     {
-        $response = Request::get(Endpoints::getMediasJsonByLocationIdLink($facebookLocationId),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getMediasJsonByLocationIdLink($facebookLocationId),
+            $this->generateHeaders($this->userSession)
+        );
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Location with this id doesn\'t exist');
         }
@@ -1226,8 +1235,10 @@ class Instagram
         $medias = [];
         $hasNext = true;
         while ($index < $quantity && $hasNext) {
-            $response = Request::get(Endpoints::getMediasJsonByLocationIdLink($facebookLocationId, $offset),
-                $this->generateHeaders($this->userSession));
+            $response = Request::get(
+                Endpoints::getMediasJsonByLocationIdLink($facebookLocationId, $offset),
+                $this->generateHeaders($this->userSession)
+            );
             if ($response->code === static::HTTP_NOT_FOUND) {
                 throw new InstagramNotFoundException('Location with this id doesn\'t exist');
             }
@@ -1262,8 +1273,10 @@ class Instagram
      */
     public function getLocationById($facebookLocationId)
     {
-        $response = Request::get(Endpoints::getMediasJsonByLocationIdLink($facebookLocationId),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getMediasJsonByLocationIdLink($facebookLocationId),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Location with this id doesn\'t exist');
@@ -1320,8 +1333,10 @@ class Instagram
         }
 
         while (true) {
-            $response = Request::get(Endpoints::getFollowersJsonLink($accountId, $pageSize, $endCursor),
-                $this->generateHeaders($this->userSession));
+            $response = Request::get(
+                Endpoints::getFollowersJsonLink($accountId, $pageSize, $endCursor),
+                $this->generateHeaders($this->userSession)
+            );
             if ($response->code === static::HTTP_NOT_FOUND) {
                 throw new InstagramNotFoundException('Account with this id doesn\'t exist');
             }
@@ -1386,8 +1401,10 @@ class Instagram
      */
     public function getPaginateAllFollowers($accountId, $pageSize = 20, $nextPage = '')
     {
-        $response = Request::get(Endpoints::getFollowersJsonLink($accountId, $pageSize, $nextPage),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getFollowersJsonLink($accountId, $pageSize, $nextPage),
+            $this->generateHeaders($this->userSession)
+        );
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with this id doesn\'t exist');
         }
@@ -1465,8 +1482,10 @@ class Instagram
         }
 
         while (true) {
-            $response = Request::get(Endpoints::getFollowingJsonLink($accountId, $pageSize, $endCursor),
-                $this->generateHeaders($this->userSession));
+            $response = Request::get(
+                Endpoints::getFollowingJsonLink($accountId, $pageSize, $endCursor),
+                $this->generateHeaders($this->userSession)
+            );
             if ($response->code === static::HTTP_NOT_FOUND) {
                 throw new InstagramNotFoundException('Account with this id doesn\'t exist');
             }
@@ -1531,8 +1550,10 @@ class Instagram
      */
     public function getPaginateAllFollowing($accountId, $pageSize = 20, $nextPage = '')
     {
-        $response = Request::get(Endpoints::getFollowingJsonLink($accountId, $pageSize, $nextPage),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getFollowingJsonLink($accountId, $pageSize, $nextPage),
+            $this->generateHeaders($this->userSession)
+        );
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with this id doesn\'t exist');
         }
@@ -1576,8 +1597,10 @@ class Instagram
     {
         $variables = ['precomposed_overlay' => false, 'reel_ids' => []];
         if (empty($reel_ids)) {
-            $response = Request::get(Endpoints::getUserStoriesLink(),
-                $this->generateHeaders($this->userSession));
+            $response = Request::get(
+                Endpoints::getUserStoriesLink(),
+                $this->generateHeaders($this->userSession)
+            );
 
             if ($response->code !== static::HTTP_OK) {
                 throw new InstagramException('Response code is ' . $response->code . '. Body: ' . static::getErrorBody($response->body) . ' Something went wrong. Please report issue.', $response->code);
@@ -1596,8 +1619,10 @@ class Instagram
             $variables['reel_ids'] = $reel_ids;
         }
 
-        $response = Request::get(Endpoints::getStoriesLink($variables),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getStories($variables),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code !== static::HTTP_OK) {
             throw new InstagramException('Response code is ' . $response->code . '. Body: ' . static::getErrorBody($response->body) . ' Something went wrong. Please report issue.', $response->code);
@@ -1671,8 +1696,11 @@ class Instagram
                 'X-CSRFToken' => $csrfToken,
                 'user-agent' => $this->getUserAgent(),
             ];
-            $response = Request::post(Endpoints::LOGIN_URL, $headers,
-                ['username' => $this->sessionUsername, 'enc_password' => '#PWD_INSTAGRAM_BROWSER:0:' . time() . ':' . $this->sessionPassword]);
+            $response = Request::post(
+                Endpoints::LOGIN_URL,
+                $headers,
+                ['username' => $this->sessionUsername, 'enc_password' => '#PWD_INSTAGRAM_BROWSER:0:' . time() . ':' . $this->sessionPassword]
+            );
 
             if ($response->code !== static::HTTP_OK) {
                 if (
@@ -1975,8 +2003,10 @@ class Instagram
      */
     public function getHighlights($userId)
     {
-        $response = Request::get(Endpoints::getHighlightUrl($userId),
-            $this->generateHeaders($this->userSession));
+        $response = Request::get(
+            Endpoints::getHighlightUrl($userId),
+            $this->generateHeaders($this->userSession)
+        );
 
         if ($response->code === static::HTTP_NOT_FOUND) {
             throw new InstagramNotFoundException('Account with given username does not exist.');

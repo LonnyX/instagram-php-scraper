@@ -525,6 +525,9 @@ class Media extends AbstractModel
             case 'link':
                 $this->link = $value;
                 break;
+            case 'story_cta_url':
+                $this->story_cta_url = $value;
+                break;
             case 'comments_disabled':
                 $this->commentsDisabled = $value;
                 break;
@@ -605,7 +608,7 @@ class Media extends AbstractModel
                 }
                 break;
             case 'location':
-                if(isset($arr[$prop])) {
+                if (isset($arr[$prop])) {
                     $this->locationId = $arr[$prop]['id'] ? $arr[$prop]['id'] : null;
                     $this->locationName = $arr[$prop]['name'] ? $arr[$prop]['name'] : null;
                     $this->locationSlug = $arr[$prop]['slug'] ? $arr[$prop]['slug'] : null;
@@ -703,9 +706,9 @@ class Media extends AbstractModel
             case '__typename':
                 if ($value == 'GraphImage' || $value == 'GraphStoryImage') {
                     $this->type = static::TYPE_IMAGE;
-                } else if ($value == 'GraphVideo' || $value == 'GraphStoryVideo') {
+                } elseif ($value == 'GraphVideo' || $value == 'GraphStoryVideo') {
                     $this->type = static::TYPE_VIDEO;
-                } else if ($value == 'GraphSidecar') {
+                } elseif ($value == 'GraphSidecar') {
                     $this->type = static::TYPE_SIDECAR;
                 }
                 break;

@@ -9,6 +9,7 @@ use InstagramScraper\Exception\InstagramChallengeSubmitPhoneNumberException;
 use InstagramScraper\Exception\InstagramException;
 use InstagramScraper\Exception\InstagramNotFoundException;
 use InstagramScraper\Exception\InstagramAgeRestrictedException;
+use InstagramScraper\Http\Response;
 use InstagramScraper\Model\Account;
 use InstagramScraper\Model\Activity;
 use InstagramScraper\Model\Comment;
@@ -23,10 +24,10 @@ use InstagramScraper\Model\Highlight;
 use InstagramScraper\TwoStepVerification\ConsoleVerification;
 use InstagramScraper\TwoStepVerification\TwoStepVerificationInterface;
 use InvalidArgumentException;
+use InstagramScraper\Http\Request;
+use Psr\Http\Client\ClientInterface;
 use Psr\SimpleCache\CacheInterface;
 use stdClass;
-use Unirest\Request;
-use Unirest\Response;
 
 class Instagram
 {
@@ -57,16 +58,34 @@ class Instagram
     private $customCookies = null;
 
     /**
+     * Instagram constructor.
+     * @param ClientInterface $client
+     */
+    public function __construct(ClientInterface $client)
+    {
+        Request::setHttpClient($client);
+    }
+
+    /**
+     * @param ClientInterface $httpClient
+     */
+    public static function setHttpClient(ClientInterface $httpClient): void
+    {
+        Request::setHttpClient($httpClient);
+    }
+
+    /**
+     * @param ClientInterface $client
      * @param string $username
      * @param string $password
      * @param CacheInterface $cache
      *
      * @return Instagram
      */
-    public static function withCredentials($username, $password, $cache)
+    public static function withCredentials(ClientInterface $client, $username, $password, $cache)
     {
         static::$instanceCache = $cache;
-        $instance = new self();
+        $instance = new self($client);
         $instance->sessionUsername = $username;
         $instance->sessionPassword = $password;
         return $instance;
@@ -135,53 +154,6 @@ class Instagram
     public static function setAccountMediasRequestCount($count)
     {
         Endpoints::setAccountMediasRequestCount($count);
-    }
-
-    /**
-     * Set custom curl opts
-     */
-    public static function curlOpts($opts)
-    {
-        Request::curlOpts($opts);
-    }
-
-    /**
-     * @param array $config
-     */
-    public static function setProxy(array $config)
-    {
-        $defaultConfig = [
-            'port' => false,
-            'tunnel' => false,
-            'address' => false,
-            'type' => CURLPROXY_HTTP,
-            'timeout' => false,
-            'auth' => [
-                'user' => '',
-                'pass' => '',
-                'method' => CURLAUTH_BASIC
-            ],
-        ];
-
-        $config = array_replace($defaultConfig, $config);
-
-        Request::proxy($config['address'], $config['port'], $config['type'], $config['tunnel']);
-
-        if (isset($config['auth'])) {
-            Request::proxyAuth($config['auth']['user'], $config['auth']['pass'], $config['auth']['method']);
-        }
-
-        if (isset($config['timeout'])) {
-            Request::timeout((int)$config['timeout']);
-        }
-    }
-
-    /**
-     * Disable proxy for all requests
-     */
-    public static function disableProxy()
-    {
-        Request::proxy('');
     }
 
     /**
@@ -1303,7 +1275,7 @@ class Instagram
     public function getFollowers($accountId, $count = 20, $pageSize = 20, $delayed = true)
     {
         $result = $this->getPaginateFollowers($accountId, $count, $pageSize, $delayed, '');
-        return $result['accounts'];
+        return $result['accounts'] ?? [];
     }
 
     /**
@@ -1474,7 +1446,7 @@ class Instagram
 
         $index = 0;
         $accounts = [];
-        $endCursor = '';
+        $endCursor = $nextPage;
         $lastPagingInfo = [];
 
         if ($count < $pageSize) {
@@ -1702,24 +1674,20 @@ class Instagram
                 ['username' => $this->sessionUsername, 'enc_password' => '#PWD_INSTAGRAM_BROWSER:0:' . time() . ':' . $this->sessionPassword]
             );
 
+            if (isset($response->body->message) && $response->body->message == 'checkpoint_required') {
+                $response = $this->verifyTwoStep($response, $cookies, $twoStepVerificator);
+            }
+
             if ($response->code !== static::HTTP_OK) {
-                if (
-                    $response->code === static::HTTP_BAD_REQUEST
-                    && isset($response->body->message)
-                    && $response->body->message == 'checkpoint_required'
-                ) {
-                    $response = $this->verifyTwoStep($response, $cookies, $twoStepVerificator);
-                } elseif ((is_string($response->code) || is_numeric($response->code)) && is_string($response->body)) {
+                if ((is_string($response->code) || is_numeric($response->code)) && is_string($response->body)) {
                     throw new InstagramAuthException('Response code is ' . $response->code . '. Body: ' . $response->body . ' Something went wrong. Please report issue.', $response->code);
                 } else {
                     throw new InstagramAuthException('Something went wrong. Please report issue.', $response->code);
                 }
             }
 
-            if (is_object($response->body)) {
-                if (!$response->body->authenticated) {
-                    throw new InstagramAuthException('User credentials are wrong.');
-                }
+            if (is_object($response->body) && !$response->body->authenticated) {
+                throw new InstagramAuthException('User credentials are wrong.');
             }
 
             $cookies = $this->parseCookies($response->headers);
